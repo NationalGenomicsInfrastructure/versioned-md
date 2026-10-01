@@ -59,7 +59,7 @@ Please see the [Standard Operating Procedures](#standard-operating-procedures) f
 |---|---|---|
 | `strict` | `docs/strict/` | Full governance. Unique 4-digit IDs. Filename must be `<documentId>.md` (e.g., `1001.md`) |
 | `drafts` | `docs/drafts/` | Transitional. Lightweight governance. Descriptive filenames OK |
-| `reference` | `docs/reference/` | Static reference docs. No governance. Descriptive IDs and names OK |
+| `reference` | `docs/reference/` | Static reference docs. Descriptive IDs and names OK. Still versioned by CI |
 
 Documents can be promoted from `drafts` → `strict` via a dedicated PR. The CI handles the rest.
 
@@ -294,10 +294,11 @@ The `responsible` field tracks the person owning the document. It is user-mutabl
 
 ### Schema Rules Enforced by CI
 
-- `category` must match the document's parent directory (`strict`, `draft`, or `retired`)
+- `category` must match the document's parent directory (`strict`, `draft`, `reference`, or `retired`)
 - `documentId` must be a unique 4-digit number for `strict` and `draft` categories
 - `strict` filenames must equal the `documentId` (e.g., `1001.md`)
 - `version_history` entries are immutable once written; only appending new entries is allowed
+- `reference` documents use descriptive `documentId`s and filenames, but are otherwise versioned by CI like other documents
 - Protected top-level fields cannot be changed in a PR
 - Mutable fields (`title`, `description`, `responsible`) can only change if the Markdown body also changed
 

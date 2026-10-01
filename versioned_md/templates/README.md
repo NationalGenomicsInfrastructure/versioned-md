@@ -45,7 +45,7 @@ automatically.
 |---|---|---|
 | `strict` | `docs/strict/` | Full governance. Unique 4-digit IDs. Filename must be `<documentId>.md` |
 | `drafts` | `docs/drafts/` | Transitional. Lightweight governance. Descriptive filenames OK |
-| `reference` | `docs/reference/` | Static reference docs. No governance. Descriptive IDs and names OK |
+| `reference` | `docs/reference/` | Static reference docs. Descriptive IDs and names OK. Still versioned by CI |
 
 Documents can be promoted from `drafts` → `strict` via a dedicated PR. The CI handles the rest.
 

@@ -15,7 +15,7 @@ Each document has a companion `.meta.json` file. All metadata is stored here —
 | `title` | string | Yes | No | Display title, appears in documentation navigations |
 | `description` | string | Yes | No | Short description for SEO, navigation lists, and search |
 | `responsible` | string | Yes | No | GitHub handle of the person who owns this document |
-| `category` | string | No | Yes | One of `strict`, `draft`, `retired` — must match parent directory |
+| `category` | string | No | Yes | One of `strict`, `draft`, `reference`, `retired` — must match parent directory |
 | `documentId` | string | No | Yes | 4-digit numeric identifier for strict/draft (e.g. `"1001"`). Descriptive for reference |
 | `status` | string | No | Yes | One of `active`, `retired` |
 | `version` | string | No | Yes | Current version number as string (e.g. `"1"`, `"42"`) |
@@ -206,5 +206,5 @@ Quick diagnostic reference for the most common errors you will encounter.
 |---|---|---|
 | `"missing required field 'version_history'"` | The `.meta.json` file does not have a `version_history` array | Add `"version_history": []` to the file |
 | `" 'version_history' must be an array"` | `version_history` is not a JSON array | Change it to an array: `"version_history": [...]` |
-| `" 'category' must be one of 'strict', 'draft', 'retired'"` | Invalid category value | Use one of the three valid values |
+| `" 'category' must be one of 'strict', 'draft', 'reference', 'retired'"` | Invalid category value | Use one of the four valid values |
 | `" schema validation failed: ..."` | Top-level `.meta.json` field fails JSON Schema validation | Check the error message for which field is invalid and correct it |

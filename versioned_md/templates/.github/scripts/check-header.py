@@ -38,8 +38,10 @@ PROTECTED_KEYS = (
     "reviewer", "commitHash", "prNumber",
 )
 
-# Valid categories for documentId
-VALID_CATEGORIES = ("strict", "draft")
+# All valid categories. Reference docs live in docs/reference/ and use
+# descriptive documentIds / filenames, but are otherwise versioned by CI
+# like strict and draft docs.
+VALID_CATEGORIES = ("strict", "draft", "reference", "retired")
 
 
 def files_in_ref(ref: str, pattern: str = "*.md") -> list[str]:
@@ -90,10 +92,10 @@ def _check_md_file(md_path: Path, base_ref: str, pr_ref: str) -> list[str]:
     # Validate category matches parent directory
     category = pr_meta.get("category")
     expected_category = "draft" if md_path.parent.name == "drafts" else md_path.parent.name
-    if category and category not in ("strict", "draft", "retired"):
+    if category and category not in VALID_CATEGORIES:
         errors.append(
             f"Invalid category '{category}' in {pr_meta_path}. "
-            f"Must be 'strict', 'draft', or 'retired'."
+            f"Must be one of: {', '.join(VALID_CATEGORIES)}."
         )
     elif category and md_path.parent.name == "drafts" and category != "draft":
         errors.append(

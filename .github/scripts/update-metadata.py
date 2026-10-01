@@ -2,35 +2,35 @@
 """Update document metadata after a merge commit.
 
 Steps for each changed ``*.md`` file:
-1. Parse frontmatter + ``*.meta.json``.
+1. Load the companion .meta.json (the single source of truth).
 2. Determine current state (new promotion, routine update, etc.).
 3. Fetch approved reviewers from the GitHub API (using the PR number
    embedded in the merge commit message).
 4. Bump version (or initialise it on promotion).
-5. Write updated frontmatter and meta.json.
+5. Write updated .meta.json (frontmatter is removed — .meta.json is the only metadata storage).
 6. Commit and push back to ``main``.
 
 Requires: ``GITHUB_TOKEN`` in env, ``--repo`` as ``owner/name``.
 """
 
 import argparse
+import json
+import os
 import sys
 from pathlib import Path
 
 # Allow importing from parent directory (scripts/ → lib/)
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from lib.metadata import (
     bump_version,
     generate_document_id,
-    get_commit_author,
+    read_commit_author,
     get_commit_date,
     get_latest_commit_message,
     get_latest_commit_sha,
     load_meta,
-    parse_frontmatter,
     save_meta,
-    write_frontmatter,
 )
 from lib.reviewers import fetch_reviewers
 
@@ -53,20 +53,7 @@ def changed_md_files(base_ref: str, head_ref: str) -> list[str]:
     if result.returncode != 0:
         return []
     lines = result.stdout.strip().splitlines()
-    return [line for line in lines if line.endswith(".md")]
-
-
-def detect_promotion(md_path: Path, base_meta: dict | None, pr_meta: dict) -> bool:
-    """Return True if this file was promoted (moved from drafts/ → strict/)."""
-    if base_meta is None:
-        # New file — could be a promotion or a new draft
-        return False
-
-    old_category = base_meta.get("category", "")
-    new_category = pr_meta.get("category", "")
-
-    # Promotion: was in drafts, now in strict
-    return old_category == "draft" and new_category == "strict"
+    return [l for l in lines if l.endswith(".md")]
 
 
 def validate_strict_filename(md_path: Path) -> bool:
@@ -74,9 +61,12 @@ def validate_strict_filename(md_path: Path) -> bool:
     path = Path(md_path)
     if path.parent.name != "strict":
         return True
+    meta_path = path.with_suffix(".meta.json")
+    if not meta_path.exists():
+        return True  # no meta.json yet will be created by CI
     try:
-        meta = parse_frontmatter(path)
-    except (ValueError, FileNotFoundError):
+        meta = load_meta(path)
+    except (json.JSONDecodeError, FileNotFoundError):
         return True
     doc_id = meta.get("documentId")
     if not doc_id:
@@ -100,7 +90,7 @@ def validate_strict_filenames(all_md_files: list[str]) -> bool:
 
 
 def update_single_file(md_path: str, repo: str, pr_number: int | None, reviewers: list[str]) -> None:
-    """Update frontmatter + meta.json for a single document file.
+    """Update .meta.json for a single document file.
 
     Args:
         md_path: Relative path to the .md file (from repo root).
@@ -109,29 +99,31 @@ def update_single_file(md_path: str, repo: str, pr_number: int | None, reviewers
         reviewers: List of approved reviewer logins.
     """
     path = Path(md_path)
+    meta_path = path.with_suffix(".meta.json")
 
-    # Load current frontmatter & metadata
-    try:
-        meta = parse_frontmatter(path)
-    except ValueError:
-        print(f"  SKIP {md_path}: no frontmatter found")
-        return
+    # Load current metadata from .meta.json
+    if meta_path.exists():
+        try:
+            meta_json = load_meta(path)
+        except (json.JSONDecodeError, ValueError):
+            print(f"  SKIP {md_path}: invalid .meta.json")
+            return
+    else:
+        meta_json = {"version_history": []}
 
-    meta_json = load_meta(path)
     version_history = meta_json.get("version_history", []) or []
 
     # Auto-assign documentId for strict/draft if missing
-    category = meta.get("category", "")
-    existing_doc_id = meta.get("documentId", "")
+    category = meta_json.get("category", "")
+    existing_doc_id = meta_json.get("documentId", "")
     is_strict_or_draft = category in ("strict", "draft")
 
     if is_strict_or_draft and not existing_doc_id:
         new_id = generate_document_id()
-        meta["documentId"] = new_id
+        meta_json["documentId"] = new_id
 
     # Check if it's a promotion (old file in drafts → new file in strict)
-    # For promotions, base_meta would be None initially
-    is_promotion = meta.get("category") == "strict" and not version_history
+    is_promotion = meta_json.get("category") == "strict" and not version_history
 
     if is_promotion:
         print(f"  PROMOTE {md_path}")
@@ -140,13 +132,13 @@ def update_single_file(md_path: str, repo: str, pr_number: int | None, reviewers
     else:
         print(f"  UPDATE {md_path}")
 
-    # Derive fields
+    # Derive fields from git
     commit_sha = get_latest_commit_sha()
     commit_date = get_commit_date()
-    author = get_commit_author()
+    author = read_commit_author()
 
     # Use reviewer list from PR if available; fall back to what's already set
-    reviewer_list = meta.get("reviewer")
+    reviewer_list = meta_json.get("reviewer")
     if reviewer_list is None and reviewers:
         reviewer_list = reviewers
     elif isinstance(reviewer_list, list):
@@ -160,16 +152,14 @@ def update_single_file(md_path: str, repo: str, pr_number: int | None, reviewers
     new_version = bump_version(meta_json)
     meta_json["version_history"] = version_history
 
-    # Update frontmatter
-    meta["version"] = new_version
-    meta["lastUpdated"] = commit_date
-    meta["updatedBy"] = author
-    meta["reviewer"] = reviewer_list
-    meta["commitHash"] = commit_sha
+    # Update .meta.json with auto-derived fields
+    meta_json["version"] = new_version
+    meta_json["lastUpdated"] = commit_date
+    meta_json["updatedBy"] = author
+    meta_json["reviewer"] = reviewer_list
+    meta_json["commitHash"] = commit_sha
     if pr_number:
-        meta["prNumber"] = str(pr_number)
-
-    write_frontmatter(path, meta)
+        meta_json["prNumber"] = str(pr_number)
 
     # Build version_history entry
     entry = {
@@ -180,14 +170,20 @@ def update_single_file(md_path: str, repo: str, pr_number: int | None, reviewers
         "commit_hash": commit_sha,
         "pr_number": pr_number,
     }
-    version_history.append(entry)
 
-    save_meta(path, {"version_history": version_history})
+    # Only append if not already present (handles imported history in first PR)
+    existing_versions = {h.get("version") for h in version_history if h.get("version")}
+    if new_version not in existing_versions:
+        version_history.append(entry)
+    else:
+        print(f"    Skipping history append — version {new_version} already present")
+
+    save_meta(path, meta_json)
 
     print(f"    version → {new_version}")
     print(f"    updatedBy → {author}")
     print(f"    lastUpdated → {commit_date}")
-    print(f"    documentId → {meta.get('documentId', 'N/A')}")
+    print(f"    documentId → {meta_json.get('documentId', 'N/A')}")
     print(f"    commitHash → {commit_sha}")
     if reviewer_list:
         print(f"    reviewer → {', '.join(reviewer_list)}")
@@ -201,9 +197,12 @@ def validate_all_document_ids(all_md_files: list[str]) -> bool:
         path = Path(f)
         if path.parent.name not in ("strict", "draft"):
             continue
+        meta_path = path.with_suffix(".meta.json")
+        if not meta_path.exists():
+            continue
         try:
-            meta = parse_frontmatter(path)
-        except (ValueError, FileNotFoundError):
+            meta = load_meta(path)
+        except (json.JSONDecodeError, FileNotFoundError):
             continue
         doc_id = meta.get("documentId")
         if not doc_id:
@@ -223,6 +222,7 @@ def main() -> int:
     args = parser.parse_args()
 
     repo = args.repo
+    token = os.environ.get("GITHUB_TOKEN", "")
     pr_number = None
 
     # Step 1: Extract PR number from merge commit message
@@ -232,8 +232,32 @@ def main() -> int:
     pr_number = epn(commit_msg)
 
     if pr_number is not None:
-        reviewers = fetch_reviewers(pr_number, repo, "")
+        reviewers = fetch_reviewers(pr_number, repo, token)
         print(f"Fetched {len(reviewers)} reviewers for PR #{pr_number}: {reviewers}")
+
+        # Validate that all approved reviewers exist in people.json
+        import subprocess
+
+        people_result = subprocess.run(
+            ["git", "show", "HEAD:people.json"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if people_result.returncode == 0:
+            people_data = json.loads(people_result.stdout)
+            people_handles = {p.get("handle", "") for p in people_data.get("people", [])}
+
+            for reviewer in reviewers:
+                if reviewer not in people_handles:
+                    print(
+                        f"ERROR: Approved reviewer '{reviewer}' is not listed in people.json. "
+                        f"Run 'versioned-md people import' to add them.",
+                        file=sys.stderr,
+                    )
+                    return 1
+        else:
+            print("WARNING: people.json not found. Skipping reviewer validation.", file=sys.stderr)
     else:
         reviewers = []
         print(f"No PR number found in commit message: '{commit_msg}'")
@@ -252,7 +276,6 @@ def main() -> int:
     current_sha = get_latest_commit_sha()
 
     if not base_ref:
-        # Could be the very first commit — nothing to update
         print("No parent commit found (likely the initial commit). Skipping update.")
         return 0
 

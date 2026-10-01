@@ -136,7 +136,7 @@ Meta validation passed.
 ```
   docs/strict/1001.md: OK
   docs/strict/1003.md: FAILED
-    - 'category' must be one of 'strict', 'draft', 'retired'
+    - 'category' must be one of 'strict', 'draft', 'reference', 'retired'
     - schema validation failed: must match "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
   docs/drafts/sample.md: OK
 make: *** [Makefile:12: meta-check] Error 1
@@ -155,7 +155,7 @@ Based on the error messages:
 // Example of a failing .meta.json
 {
   "title": "My Document",
-  "category": "production",     // ERROR: not valid — must be strict/draft/retired
+  "category": "production",     // ERROR: not valid — must be strict/draft/reference/retired
   "documentId": "1003",
   "version_history": [
     {
