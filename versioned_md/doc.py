@@ -9,10 +9,11 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-VALID_CATEGORIES = ("strict", "draft")
+VALID_CATEGORIES = ("strict", "draft", "reference")
 CAT_DIR_MAP = {
     "strict": "docs/strict",
     "draft": "docs/drafts",
+    "reference": "docs/reference",
 }
 DOC_BODY_TEMPLATE = """# {title}
 
@@ -254,17 +255,20 @@ class DocCreate:
             print("\nWhat kind of document is this?")
             print("  1) draft — work in progress, no governance")
             print("  2) strict — published documentation, requires documentId")
+            print("  3) reference — static reference docs, no governance")
             while not self.category:
                 choice = input("> ").strip()
                 if choice == "1":
                     self.category = "draft"
                 elif choice == "2":
                     self.category = "strict"
+                elif choice == "3":
+                    self.category = "reference"
                 else:
-                    print("Please enter 1 or 2")
+                    print("Please enter 1, 2, or 3")
 
-        if self.category not in ("strict", "draft"):
-            log.error(f"Invalid category '{self.category}'. Must be 'draft' or 'strict'.")
+        if self.category not in ("strict", "draft", "reference"):
+            log.error(f"Invalid category '{self.category}'. Must be 'draft', 'strict', or 'reference'.")
             return 1
 
         if not self.description:
@@ -274,6 +278,9 @@ class DocCreate:
         doc_dir = Path(CAT_DIR_MAP.get(self.category, f"docs/{self.category}"))
         if self.category == "draft":
             # Drafts: use a slugified version of the title
+            filename = self._make_slug(self.title) + ".md"
+        elif self.category == "reference":
+            # Reference: use a slugified version of the title
             filename = self._make_slug(self.title) + ".md"
         else:
             # Strict: ask for the document number
@@ -291,9 +298,15 @@ class DocCreate:
         # Ensure parent directory exists
         target_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Set documentId: use user-entered number for strict, auto-assign for draft
+        # Set documentId: use user-entered number for strict, auto-assign for draft/reference
         if self.category == "strict":
             document_id = doc_number
+        elif self.category == "reference":
+            # Reference: allow any documentId, skip if not provided
+            if self.title:
+                document_id = self._make_slug(self.title)
+            else:
+                document_id = "ref" + datetime.now(UTC).strftime("%Y%m%d%H%M")
         else:
             skip_ids = set()
             for cat in CAT_DIR_MAP:
@@ -579,13 +592,13 @@ class DocImport:
         # Determine category
         if not self.category:
             if self.interactive:
-                self.category = self._prompt("Category (strict or draft)", default="draft")
+                self.category = self._prompt("Category (strict, draft, or reference)", default="draft")
             else:
                 log.error("No category provided. Use --category or add 'category:' to source .meta.json.")
                 return 1
 
         if self.category not in VALID_CATEGORIES:
-            log.error(f"Invalid category '{self.category}'. Must be 'strict' or 'draft'.")
+            log.error(f"Invalid category '{self.category}'. Must be 'strict', 'draft', or 'reference'.")
             return 1
 
         # Handle documentId
@@ -600,6 +613,14 @@ class DocImport:
                 return 1
             _validate_document_id(document_id)
             document_id = str(document_id)
+        elif self.category == "reference":
+            # Reference: allow any documentId, generate from title if missing
+            if not document_id:
+                slug = _slugify(source_path.stem)
+                document_id = slug
+                log.info(f"Auto-assigned documentId: {document_id}")
+            else:
+                document_id = str(document_id)
         else:
             # Draft: auto-assign if missing
             if not document_id:
@@ -618,6 +639,10 @@ class DocImport:
         # Determine target path
         target_dir = repo_dir / CAT_DIR_MAP.get(self.category, f"docs/{self.category}")
         if self.category == "draft":
+            title = source_path.stem.replace("-", " ").title()
+            slug = _slugify(title)
+            filename = slug + ".md"
+        elif self.category == "reference":
             title = source_path.stem.replace("-", " ").title()
             slug = _slugify(title)
             filename = slug + ".md"

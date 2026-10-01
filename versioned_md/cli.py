@@ -34,7 +34,7 @@ app.add_typer(meta_app, name="meta", help="Manage meta.json companion files.")
 def doc_create(
     title: str = typer.Option("", "--title", "-t", help="Document title."),
     description: str = typer.Option("", "--description", "-d", help="Document description."),
-    category: str = typer.Option("", "--category", "-c", help="Document category (draft or strict)."),
+    category: str = typer.Option("", "--category", "-c", help="Document category (draft, strict, or reference)."),
     directory: str = typer.Option(".", "--dir", help="Repository directory (default: current)."),
 ):
     """Create a new document with top-level metadata in .meta.json."""
@@ -90,7 +90,7 @@ def doc_retire(
 @doc_app.command("import")
 def doc_import(
     source: str = typer.Option(..., "--source", "-s", help="Source markdown file to import."),
-    category: str = typer.Option("", "--category", "-c", help="Target category (strict or draft)."),
+    category: str = typer.Option("", "--category", "-c", help="Target category (strict, draft, or reference)."),
     document_id: str = typer.Option("", "--document-id", "-d", help="4-digit document ID for strict documents."),
     directory: str = typer.Option(".", "--dir", "-d", help="Repository directory (default: current)."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview the import without writing files."),

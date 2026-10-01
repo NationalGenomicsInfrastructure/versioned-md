@@ -139,6 +139,9 @@ versioned-md people import --dry-run --token "$GITHUB_TOKEN"
 # Create a new document (requires --category, drafts need a title)
 versioned-md doc create --title "Doc Title" --category draft --description "Description"
 
+# Create a reference document (uses descriptive filename, no governance)
+versioned-md doc create --title "API Reference" --category reference --description "API documentation"
+
 # Promote a draft to strict
 versioned-md doc promote --path docs/drafts/my-doc.md --category strict
 
@@ -147,6 +150,9 @@ versioned-md doc retire --path docs/strict/1001.md --reason "Replaced by 1020"
 
 # Import an existing Markdown file
 versioned-md doc import --source existing-file.md --category draft
+
+# Import as a reference document
+versioned-md doc import --source existing-file.md --category reference
 ```
 
 ### Metadata
@@ -185,7 +191,7 @@ versioned-md doc retire docs/strict/1001-old-doc.md --reason "Replaced by 1020"
 
 | Command | Purpose | Details |
 |---|---|---|
-| `doc create` | Create a new document | Prompts for category; drafts get auto-assigned docId, strict asks for a number |
+| `doc create` | Create a new document | Prompts for category; drafts/get auto-assigned docId, strict asks for a number, reference uses descriptive id |
 | `doc promote` | Move draft → strict | Renames file, updates category, validates documentId uniqueness |
 | `doc retire` | Retire a document | Moves to `docs/retired/`, sets `status: retired` in `.meta.json` |
 | `doc import` | Import existing Markdown file | Reads the markdown body, enriches with git history, auto-imports `version_history` from source `.meta.json`, supports `--dry-run` |
@@ -311,21 +317,21 @@ The `--skip-history` flag disables automatic `version_history` merging from the 
 
 ## Standard Operating Procedures
 
-Step-by-step guides for common documentation workflows. These ship with every repository created by `versioned-md create` and are available in `docs/sop/` after bootstrapping.
+Step-by-step guides for common documentation workflows. These ship with every repository created by `versioned-md create` as reference documents in `docs/reference/`.
 
-- [Getting Started](versioned_md/templates/docs/sop/01-getting-started.md) — Create a repo from scratch, bootstrap with people and first document
-- [Creating Documents](versioned_md/templates/docs/sop/02-creating-docs.md) — Drafts, strict documents, and reference docs
-- [Document Lifecycle](versioned_md/templates/docs/sop/03-document-lifecycle.md) — Promote drafts to strict, retire outdated docs, import from elsewhere
-- [Team Management](versioned_md/templates/docs/sop/04-team-management.md) — Add people, bulk import from GitHub, deactivate team members
-- [CI & Governance](versioned_md/templates/docs/sop/05-ci-governance.md) — The PR workflow, CI checks, and what happens on merge
-- [Maintenance & Admin](versioned_md/templates/docs/sop/06-maintenance-admin.md) — Update CI templates, validate metadata, migrate legacy repos
-- [Reference](versioned_md/templates/docs/sop/07-reference.md) — Field reference (mutable vs protected), version history rules, troubleshooting
+- [Using versioned-md](versioned_md/templates/docs/reference/01-using-versioned-md.md) — Create a repo from scratch, bootstrap with people and first document
+- [Creating Documents](versioned_md/templates/docs/reference/02-creating-documents.md) — Drafts, strict documents, and reference docs
+- [Updating Documents](versioned_md/templates/docs/reference/03-updating-documents.md) — Promote drafts to strict, retire outdated docs, import from elsewhere
+- [Team Management](versioned_md/templates/docs/reference/04-team-management.md) — Add people, bulk import from GitHub, deactivate team members
+- [CI & Governance](versioned_md/templates/docs/reference/05-ci-and-governance.md) — The PR workflow, CI checks, and what happens on merge
+- [Maintenance & Admin](versioned_md/templates/docs/reference/06-maintenance-and-admin.md) — Update CI templates, validate metadata, migrate legacy repos
+- [Reference](versioned_md/templates/docs/reference/07-reference.md) — Field reference (mutable vs protected), version history rules, troubleshooting
 
-You can also open these from your own repo after running `versioned-md create`:
+You can also view these from your own repo after running `versioned-md create`:
 
 ```bash
 # View the SOPs in your local docs directory
-ls docs/sop/
+ls docs/reference/
 ```
 
 ## Development

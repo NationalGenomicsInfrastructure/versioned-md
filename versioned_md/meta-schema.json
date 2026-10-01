@@ -15,7 +15,7 @@
     },
     "category": {
       "type": "string",
-      "enum": ["strict", "draft", "retired"],
+      "enum": ["strict", "draft", "retired", "reference"],
       "description": "Document category"
     },
     "documentId": {
