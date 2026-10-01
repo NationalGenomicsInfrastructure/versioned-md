@@ -21,8 +21,6 @@ COPY pyproject.toml uv.lock ./
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN uv sync --frozen --compile-bytecode --all-extras --python-preference only-managed
 ENV PATH="/opt/venv/bin:$PATH"
-# Ensures scripts in .github/scripts/ can import lib/ regardless of sys.path[0]
-ENV PYTHONPATH="/app"
 
 # ---------------------------------------------------------------------------
 # Dev — full repo code + tools for local development
