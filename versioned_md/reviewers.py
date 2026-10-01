@@ -30,9 +30,5 @@ def fetch_reviewers(pr_number: int, repo: str, token: str) -> list[str]:
         return []
 
     # Filter for APPROVED reviews only
-    approved = {
-        r["user"]["login"]
-        for r in resp.json() or []
-        if r.get("state") == "APPROVED"
-    }
+    approved = {r["user"]["login"] for r in resp.json() or [] if r.get("state") == "APPROVED"}
     return sorted(approved)

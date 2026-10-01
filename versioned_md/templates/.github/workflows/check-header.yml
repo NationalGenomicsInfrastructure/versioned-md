@@ -1,0 +1,37 @@
+name: Check Document Metadata
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**/*.md'
+      - 'docs/**/*.meta.json'
+
+jobs:
+  check-header:
+    name: Validate metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml requests
+
+      - name: Run check-header
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python .github/scripts/check-header.py \
+            --base-ref "${{ github.event.pull_request.base.sha }}" \
+            --pr-ref "${{ github.event.pull_request.head.sha }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --pr-author "${{ github.event.pull_request.user.login }}" \
+            --repo "${{ github.repository }}"
