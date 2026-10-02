@@ -124,7 +124,7 @@ You or someone edited a protected field in `.meta.json` directly. Let CI handle 
 
 ```
 check-header FAILED
-  - Category mismatch: docs/drafts/some-doc.meta.json has category='strict' but parent directory is 'drafts' (expected 'draft').
+  - Category mismatch: docs/drafts/some-doc.meta.json has category='strict' but is in 'drafts/' (expected 'draft' or 'retired').
 ```
 
 The document is in `docs/drafts/` but the metadata says `category: "strict"`. Either move the file to `docs/strict/` or correct the `.meta.json` category field.

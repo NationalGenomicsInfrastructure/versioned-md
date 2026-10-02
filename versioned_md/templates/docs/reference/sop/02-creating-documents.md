@@ -146,6 +146,7 @@ versioned-md doc --info --dir .
 - Strict filenames **must** exactly match the documentId (e.g., `1001.md` not `1001-system-architecture.md`)
 - There is no `reference` category support in `doc create` yet — it only accepts `draft` or `strict`
 - Reference documents can be placed in `docs/reference/` manually for now (CLI support forthcoming)
+- Category directories may contain subdirectories at any depth (e.g. `docs/reference/sop/`). The category is always determined by the top-level directory under `docs/`, and the static site renders subdirectories as nested sidebar groups
 
 ---
 

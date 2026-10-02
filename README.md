@@ -294,7 +294,7 @@ The `responsible` field tracks the person owning the document. It is user-mutabl
 
 ### Schema Rules Enforced by CI
 
-- `category` must match the document's parent directory (`strict`, `draft`, `reference`, or `retired`)
+- `category` must match the document's top-level directory under `docs/` (`strict`, `draft`, `reference`, or `retired`); subdirectories are allowed at any depth (e.g. `docs/reference/sop/`)
 - `documentId` must be a unique 4-digit number for `strict` and `draft` categories
 - `strict` filenames must equal the `documentId` (e.g., `1001.md`)
 - `version_history` entries are immutable once written; only appending new entries is allowed
@@ -318,21 +318,21 @@ The `--skip-history` flag disables automatic `version_history` merging from the 
 
 ## Standard Operating Procedures
 
-Step-by-step guides for common documentation workflows. These ship with every repository created by `versioned-md create` as reference documents in `docs/reference/`.
+Step-by-step guides for common documentation workflows. These ship with every repository created by `versioned-md create` as reference documents in `docs/reference/sop/`.
 
-- [Using versioned-md](versioned_md/templates/docs/reference/01-using-versioned-md.md) — Create a repo from scratch, bootstrap with people and first document
-- [Creating Documents](versioned_md/templates/docs/reference/02-creating-documents.md) — Drafts, strict documents, and reference docs
-- [Updating Documents](versioned_md/templates/docs/reference/03-updating-documents.md) — Promote drafts to strict, retire outdated docs, import from elsewhere
-- [Team Management](versioned_md/templates/docs/reference/04-team-management.md) — Add people, bulk import from GitHub, deactivate team members
-- [CI & Governance](versioned_md/templates/docs/reference/05-ci-and-governance.md) — The PR workflow, CI checks, and what happens on merge
-- [Maintenance & Admin](versioned_md/templates/docs/reference/06-maintenance-and-admin.md) — Update CI templates, validate metadata, migrate legacy repos
+- [Using versioned-md](versioned_md/templates/docs/reference/sop/01-using-versioned-md.md) — Create a repo from scratch, bootstrap with people and first document
+- [Creating Documents](versioned_md/templates/docs/reference/sop/02-creating-documents.md) — Drafts, strict documents, and reference docs
+- [Updating Documents](versioned_md/templates/docs/reference/sop/03-updating-documents.md) — Promote drafts to strict, retire outdated docs, import from elsewhere
+- [Team Management](versioned_md/templates/docs/reference/sop/04-team-management.md) — Add people, bulk import from GitHub, deactivate team members
+- [CI & Governance](versioned_md/templates/docs/reference/sop/05-ci-and-governance.md) — The PR workflow, CI checks, and what happens on merge
+- [Maintenance & Admin](versioned_md/templates/docs/reference/sop/06-maintenance-and-admin.md) — Update CI templates, validate metadata, migrate legacy repos
 - [Reference](versioned_md/templates/docs/reference/07-reference.md) — Field reference (mutable vs protected), version history rules, troubleshooting
 
 You can also view these from your own repo after running `versioned-md create`:
 
 ```bash
 # View the SOPs in your local docs directory
-ls docs/reference/
+ls docs/reference/sop/
 ```
 
 ## Development

@@ -4,7 +4,8 @@
 For each changed ``*.md`` and ``*.meta.json`` file in the PR:
   - Load the companion .meta.json from base and PR refs.
   - Refuse to allow manual changes to protected keys.
-  - Validate that ``category`` matches the parent directory.
+  - Validate that ``category`` matches the top-level directory under ``docs/``
+    (subdirectories allowed at any depth, e.g. ``docs/reference/sop/``).
   - For strict documents, ensure ``documentId`` is unique across the repo.
 
 Exit code 0 = pass, 1 = fail (print reasons).
@@ -21,6 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from lib.metadata import (
+    category_dir,
     find_changed_md_refs,
     find_changed_meta_refs,
     get_latest_commit_message,
@@ -89,23 +91,20 @@ def _check_md_file(md_path: Path, base_ref: str, pr_ref: str) -> list[str]:
 
     pr_meta = _load_meta_from_text(pr_meta_text)
 
-    # Validate category matches parent directory
+    # Validate category matches the top-level directory under docs/
+    # (subdirectories allowed at any depth, e.g. docs/reference/sop/)
     category = pr_meta.get("category")
-    expected_category = "draft" if md_path.parent.name == "drafts" else md_path.parent.name
+    cat_dir = category_dir(md_path)
+    expected_category = "draft" if cat_dir == "drafts" else cat_dir
     if category and category not in VALID_CATEGORIES:
         errors.append(
             f"Invalid category '{category}' in {pr_meta_path}. "
             f"Must be one of: {', '.join(VALID_CATEGORIES)}."
         )
-    elif category and md_path.parent.name == "drafts" and category != "draft":
+    elif category and expected_category and category not in (expected_category, "retired"):
         errors.append(
             f"Category mismatch: {pr_meta_path} has category='{category}' "
-            f"but parent directory is 'drafts' (expected 'draft')."
-        )
-    elif category and md_path.parent.name != "drafts" and category not in (md_path.parent.name, "retired"):
-        errors.append(
-            f"Category mismatch: {pr_meta_path} has category='{category}' "
-            f"but parent directory is '{md_path.parent.name}' (expected '{md_path.parent.name}' or 'retired')."
+            f"but is in '{cat_dir}/' (expected '{expected_category}' or 'retired')."
         )
 
     # Validate documentId format
@@ -231,7 +230,7 @@ def _check_strict_uniqueness(md_path: Path, pr_ref: str) -> list[str]:
 
     for f in strict_files:
         path = Path(f)
-        if path.parent.name not in ("strict", "draft"):
+        if category_dir(path) not in ("strict", "drafts"):
             continue
         meta_path = path.with_suffix(".meta.json")
         text = _git_show(pr_ref, str(meta_path))
@@ -247,7 +246,7 @@ def _check_strict_uniqueness(md_path: Path, pr_ref: str) -> list[str]:
             if doc_id in ids_seen:
                 errors.append(
                     f"Duplicate documentId '{doc_id}' in {path} and {ids_seen[doc_id]} — "
-                    f"{path.parent.name} documents must have unique documentIds."
+                    f"{category_dir(path)} documents must have unique documentIds."
                 )
             ids_seen[doc_id] = f
 

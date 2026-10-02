@@ -55,12 +55,12 @@ The CI blocks squash and rebase merges — only "Create a merge commit" is allow
 
 Standard Operating Procedures for common documentation workflows:
 
-- [Getting Started](sop/01-getting-started.md) — Create a repo, bootstrap for first use
-- [Creating Docs](sop/02-creating-docs.md) — Drafts, strict, and reference documents
-- [Document Lifecycle](sop/03-document-lifecycle.md) — Promote, retire, and import documents
-- [Team Management](sop/04-team-management.md) — Adding people, bulk imports, deactivation
-- [CI & Governance](sop/05-ci-governance.md) — The PR workflow, CI checks, and post-merge automation
-- [Maintenance & Admin](sop/06-maintenance-admin.md) — Updating CI, validating metadata, migrating legacy repos
-- [Reference](sop/07-reference.md) — Field reference, version history rules, and troubleshooting
+- [Getting Started](reference/sop/01-using-versioned-md.md) — Create a repo, bootstrap for first use
+- [Creating Docs](reference/sop/02-creating-documents.md) — Drafts, strict, and reference documents
+- [Document Lifecycle](reference/sop/03-updating-documents.md) — Promote, retire, and import documents
+- [Team Management](reference/sop/04-team-management.md) — Adding people, bulk imports, deactivation
+- [CI & Governance](reference/sop/05-ci-and-governance.md) — The PR workflow, CI checks, and post-merge automation
+- [Maintenance & Admin](reference/sop/06-maintenance-and-admin.md) — Updating CI, validating metadata, migrating legacy repos
+- [Reference](reference/07-reference.md) — Field reference, version history rules, and troubleshooting
 
 For more information, see the [project README](../README.md).
