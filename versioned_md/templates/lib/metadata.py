@@ -343,7 +343,7 @@ def validate_meta_pr_history(base_history: list[dict], pr_history: list[dict]) -
 def category_dir(path: str | Path) -> str | None:
     """Return the top-level directory under ``docs/`` for a document path.
 
-    ``docs/reference/sop/01-x.md`` → ``"reference"``. Subdirectories are
+    ``docs/reference/versioned-md/01-x.md`` → ``"reference"``. Subdirectories are
     allowed at any depth; only the first component determines the category.
     Returns ``None`` if the path is not inside a category directory.
     """

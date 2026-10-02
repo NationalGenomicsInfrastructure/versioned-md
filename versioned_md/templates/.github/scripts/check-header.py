@@ -5,7 +5,7 @@ For each changed ``*.md`` and ``*.meta.json`` file in the PR:
   - Load the companion .meta.json from base and PR refs.
   - Refuse to allow manual changes to protected keys.
   - Validate that ``category`` matches the top-level directory under ``docs/``
-    (subdirectories allowed at any depth, e.g. ``docs/reference/sop/``).
+    (subdirectories allowed at any depth, e.g. ``docs/reference/versioned-md/``).
   - For strict documents, ensure ``documentId`` is unique across the repo.
 
 Exit code 0 = pass, 1 = fail (print reasons).
