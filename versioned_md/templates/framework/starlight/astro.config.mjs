@@ -3,8 +3,9 @@ import starlight from "@astrojs/starlight";
 
 // https://starlight.astro.build/configuration
 export default defineConfig({
-  // Uncomment and set to your deployment URL (used for canonical links / RSS):
-  // site: "https://your-org.github.io/{{ repo_name }}/",
+  // Set to your deployment URL (used for canonical links, sitemap and RSS).
+  // Adjust if you host somewhere other than GitHub Pages:
+  site: "https://{{ org }}.github.io/{{ repo_name }}/",
   integrations: [
     starlight({
       title: {{ name | tojson }},
