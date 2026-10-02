@@ -20,12 +20,19 @@ template:
   description: "{description}"
   org: "{org}"
   author: "{author}"
+  framework: "{framework}"
 """
 
 
 def _normalize_name(name: str) -> str:
     """Convert a repo name to a safe directory name."""
     return name.strip().lower().replace(" ", "-").replace("_", "-")
+
+
+def _normalize_framework(framework: str | None) -> str:
+    """Normalise a framework choice ('none'/'' → '', lowercase, stripped)."""
+    fw = (framework or "").strip().lower()
+    return "" if fw == "none" else fw
 
 
 def _write_config(outdir: Path, context: dict) -> None:
@@ -35,8 +42,13 @@ def _write_config(outdir: Path, context: dict) -> None:
         description=context["description"],
         org=context["org"],
         author=context["author"],
+        framework=context.get("framework", ""),
     )
     (outdir / ".versioned-md.yml").write_text(content, encoding="utf-8")
+
+
+# Static documentation frameworks that can be scaffolded by `create`.
+SUPPORTED_FRAMEWORKS = ("starlight",)
 
 
 def _is_binary_file(p: Path) -> bool:
@@ -68,7 +80,18 @@ def render_template(template_dir: Path, outdir: Path, context: dict, force: bool
         if template_file.is_dir():
             continue
 
-        rel_path = template_file.relative_to(template_dir)
+        src_rel_path = template_file.relative_to(template_dir)
+
+        # Framework scaffolding lives under framework/<name>/ and is only
+        # rendered when that framework is selected; files are mapped to the
+        # root of the new repository.
+        rel_path = src_rel_path
+        if src_rel_path.parts[0] == "framework":
+            framework_name = src_rel_path.parts[1] if len(src_rel_path.parts) > 1 else ""
+            if context.get("framework", "") != framework_name:
+                continue
+            rel_path = Path(*src_rel_path.parts[2:])
+
         out_path = outdir / rel_path
 
         # Skip Python caches and temp files
@@ -94,7 +117,7 @@ def render_template(template_dir: Path, outdir: Path, context: dict, force: bool
                 continue
 
             # Render with Jinja2
-            j_template = env.get_template(str(rel_path))
+            j_template = env.get_template(str(src_rel_path))
             rendered = j_template.render(context)
 
             # Check if would overwrite and force is not set
@@ -154,6 +177,7 @@ class CreateApplication:
         config_file: str | None = None,
         force: bool = False,
         no_git: bool = False,
+        framework: str = "",
     ):
         self.name = name
         self.description = description
@@ -163,6 +187,7 @@ class CreateApplication:
         self.config_file = config_file
         self.force = force
         self.no_git = no_git
+        self.framework = _normalize_framework(framework)
 
     def run(self, is_interactive: bool = False) -> int:
         """Run the create application. Returns exit code."""
@@ -179,8 +204,19 @@ class CreateApplication:
             ctx["description"] = self.description or self._prompt("Description", "Documentation repository")
             ctx["author"] = self.author or self._prompt("Author or organisation name (used in LICENSE)")
             ctx["org"] = self.org or ctx["author"]
+            if not self.framework:
+                frameworks = ", ".join(SUPPORTED_FRAMEWORKS)
+                fw = self._prompt(f"Static documentation framework (none, {frameworks})", "none")
+                self.framework = _normalize_framework(fw)
+        ctx["framework"] = self.framework
 
         context = self._load_config(ctx)
+
+        framework = context.get("framework", "")
+        if framework not in ("",) + SUPPORTED_FRAMEWORKS:
+            log.error(f"Unknown framework '{framework}'. Supported: none, {', '.join(SUPPORTED_FRAMEWORKS)}.")
+            return 1
+        context["framework"] = framework
 
         outdir = Path(self.outdir) / context["repo_name"]
         if not outdir.exists() or self.force:
@@ -228,6 +264,7 @@ class CreateApplication:
             ctx["is_nfcore"] = ctx["org"] == "nf-core"
             if not ctx["description"]:
                 ctx["description"] = f"Documentation for {name}"
+            ctx["framework"] = _normalize_framework(ctx.get("framework", ""))
             return ctx
 
         config_path = Path(self.config_file)
@@ -243,6 +280,9 @@ class CreateApplication:
             "description": ctx["description"] or template_config.get("description", ""),
             "org": ctx["org"] or template_config.get("org", ""),
             "author": ctx["author"] or template_config.get("author", ""),
+            "framework": _normalize_framework(
+                ctx.get("framework") or template_config.get("framework", "")
+            ),
         }
 
         if not result["name"]:

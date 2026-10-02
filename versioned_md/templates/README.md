@@ -61,6 +61,29 @@ versioned-md sync
 
 This will create a PR from the `TEMPLATE` branch into `main` that you can review and merge.
 
+{% if framework == "starlight" %}
+## Static Site (Starlight)
+
+This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static site, scaffolded
+by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
+are derived from each document.
+
+```bash
+npm install
+npm run dev      # local preview at http://localhost:4321
+npm run build    # static output in dist/
+npm run preview  # preview the production build
+```
+
+The Starlight files (`astro.config.mjs`, `package.json`, `src/`) are part of the versioned-md
+template: `versioned-md sync` may update them, and you are free to customise them in `main`
+(theme, sidebar, deployment, …) — customisations stay on `main` and only the `TEMPLATE` branch
+is refreshed by sync.
+
+Note: document metadata (version, reviewers, history) lives in the companion `.meta.json` files
+and is not rendered by the default scaffold. Extend the theme to surface it as needed.
+
+{% endif %}
 ## Quick Start
 
 1. Create documentation files in `docs/strict/`, `docs/drafts/`, or `docs/reference/`

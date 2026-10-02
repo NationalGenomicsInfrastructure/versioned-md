@@ -13,7 +13,7 @@ from pathlib import Path
 import git
 
 import versioned_md
-from versioned_md.create import _normalize_name, render_template
+from versioned_md.create import _normalize_framework, _normalize_name, render_template
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +82,7 @@ class SyncApplication:
             "description": template_config.get("description", ""),
             "org": template_config.get("org", ""),
             "author": template_config.get("author", ""),
+            "framework": _normalize_framework(template_config.get("framework", "")),
         }
 
         ctx_name = context["name"]
