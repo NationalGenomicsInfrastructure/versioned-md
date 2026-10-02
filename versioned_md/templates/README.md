@@ -66,7 +66,9 @@ This will create a PR from the `TEMPLATE` branch into `main` that you can review
 
 This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static site, scaffolded
 by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
-are derived from each document.
+are derived from the `.meta.json` sidecars. The sidebar's **All documents** page
+(`src/pages/documents.astro`) lists every versioned document with its last update, built from
+the sidecars.
 
 ```bash
 npm install
@@ -80,8 +82,8 @@ template: `versioned-md sync` may update them, and you are free to customise the
 (theme, sidebar, deployment, …) — customisations stay on `main` and only the `TEMPLATE` branch
 is refreshed by sync.
 
-Note: document metadata (version, reviewers, history) lives in the companion `.meta.json` files
-and is not rendered by the default scaffold. Extend the theme to surface it as needed.
+Note: some document metadata (version, reviewers, history) is not rendered by the default
+scaffold. Extend the theme to surface it as needed.
 
 {% endif %}
 ## Quick Start

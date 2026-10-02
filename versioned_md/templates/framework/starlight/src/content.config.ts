@@ -1,7 +1,7 @@
 import { defineCollection, z } from "astro:content";
 import type { LoaderContext } from "astro:content";
 import { glob } from "astro/loaders";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 // Serve the versioned-md docs/ directory directly.
@@ -103,4 +103,83 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { docs };
+// ---------------------------------------------------------------------------
+// docMeta: one entry per .meta.json sidecar, powering the "All documents"
+// overview page (src/pages/documents.astro). Pure data — no Markdown
+// rendering involved, so a plain loader is sufficient here.
+// ---------------------------------------------------------------------------
+
+// Recursively yield the paths of all .meta.json files under *dir*.
+async function* walkMetaFiles(dir: string): AsyncGenerator<string> {
+  let items;
+  try {
+    items = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return; // directory missing — nothing to do
+  }
+  for (const item of items) {
+    const full = path.join(dir, item.name);
+    if (item.isDirectory()) {
+      yield* walkMetaFiles(full);
+    } else if (item.name.endsWith(".meta.json")) {
+      yield full;
+    }
+  }
+}
+
+const docMetaLoader = {
+  name: "versioned-md-meta",
+  load: async (ctx: LoaderContext) => {
+    // Pure custom loader (no glob loader): the files are plain JSON, so no
+    // Markdown rendering is involved, and a glob loader would validate the
+    // raw entries against the schema before we could enrich them. Entry ids
+    // are the sidecar paths relative to docs/ ("strict/1001"), which map
+    // directly to document URLs ("/strict/1001/").
+    for await (const filePath of walkMetaFiles(DOCS_DIR)) {
+      const slug = path
+        .relative(DOCS_DIR, filePath)
+        .replace(/\.meta\.json$/, "")
+        .split(path.sep)
+        .join("/");
+      const stem = path.basename(slug);
+      let meta: Record<string, unknown>;
+      try {
+        meta = JSON.parse(await readFile(filePath, "utf-8"));
+      } catch {
+        continue; // skip unparseable sidecars
+      }
+      const data = {
+        title: typeof meta.title === "string" ? meta.title : prettifyFilename(stem),
+        documentId:
+          typeof meta.documentId === "string" ? meta.documentId : stem,
+        category:
+          typeof meta.category === "string" ? meta.category : path.dirname(slug).split(path.sep)[0] || "",
+        lastUpdated:
+          typeof meta.lastUpdated === "string" ? meta.lastUpdated : "",
+        updatedBy: typeof meta.updatedBy === "string" ? meta.updatedBy : "",
+        version: typeof meta.version === "string" ? meta.version : "",
+      };
+      ctx.store.set({
+        id: slug,
+        data,
+        body: "",
+        filePath,
+        digest: ctx.generateDigest(JSON.stringify(data)),
+      });
+    }
+  },
+};
+
+const docMeta = defineCollection({
+  loader: docMetaLoader,
+  schema: z.object({
+    title: z.string(),
+    documentId: z.string(),
+    category: z.string(),
+    lastUpdated: z.string(),
+    updatedBy: z.string(),
+    version: z.string(),
+  }),
+});
+
+export const collections = { docs, docMeta };
