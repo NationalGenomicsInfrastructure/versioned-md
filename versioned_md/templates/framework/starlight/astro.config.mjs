@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import remarkNoFirstH1 from "./src/remark-no-first-h1";
 
 // https://starlight.astro.build/configuration
 export default defineConfig({
@@ -19,4 +20,11 @@ export default defineConfig({
       ],
     }),
   ],
+  // Documents already start with an H1 matching the page title, which
+  // Starlight renders in the page header; drop the duplicate from the body.
+  // Note: this must be Astro's top-level markdown config — Starlight's
+  // `markdown` option only supports `headingLinks`.
+  markdown: {
+    remarkPlugins: [remarkNoFirstH1],
+  },
 });
