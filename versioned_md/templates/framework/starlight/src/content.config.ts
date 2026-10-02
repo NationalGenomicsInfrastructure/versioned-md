@@ -1,38 +1,24 @@
 import { defineCollection, z } from "astro:content";
 import type { LoaderContext } from "astro:content";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { glob } from "astro/loaders";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 // Serve the versioned-md docs/ directory directly.
 //
 // versioned-md documents carry no frontmatter — their metadata lives in the
 // .meta.json sidecars — so docsSchema() (which requires a `title` in
-// frontmatter) cannot be used, and the plain glob loader cannot read the
-// sidecars. This small custom loader walks docs/, reads each .md file, and
-// enriches the entry with `title`/`description` from the adjacent
-// .meta.json when present (falling back to a prettified filename).
+// frontmatter) cannot be used directly. We wrap Astro's glob loader (which
+// does the actual Markdown rendering) and enrich each entry with
+// `title`/`description` from the adjacent .meta.json when present, falling
+// back to the document's H1 and then a prettified filename.
 //
 // If you add frontmatter to your documents, you can replace this loader with
-// the glob loader from "astro/loaders" and switch the schema to
+// the bare glob loader from "astro/loaders" and switch the schema to
 // docsSchema() from "@astrojs/starlight/schema" (or starlightSchema() in
 // newer Starlight versions).
 
 const DOCS_DIR = "docs";
-
-// Walk a directory recursively, returning paths of .md files relative to it.
-async function findMarkdownFiles(dir: string, root: string): Promise<string[]> {
-  const results: string[] = [];
-  for (const name of await readdir(dir)) {
-    const full = path.join(dir, name);
-    const info = await stat(full);
-    if (info.isDirectory()) {
-      results.push(...(await findMarkdownFiles(full, root)));
-    } else if (name.endsWith(".md")) {
-      results.push(path.relative(root, full));
-    }
-  }
-  return results.sort();
-}
 
 // "01-using-versioned-md" -> "01 using versioned md"; "1001" -> "1001".
 function prettifyFilename(stem: string): string {
@@ -48,11 +34,11 @@ function headingOf(body: string): string | undefined {
 const loader = {
   name: "versioned-md",
   load: async (ctx: LoaderContext) => {
-    const files = await findMarkdownFiles(DOCS_DIR, DOCS_DIR);
-    for (const relPath of files) {
-      const id = relPath.replace(/\.md$/, "");
-      const body = await readFile(path.join(DOCS_DIR, relPath), "utf-8");
-
+    // The glob loader scans the directory and renders the Markdown; the
+    // wrapper below only enriches the parsed data.
+    const base = await glob({ pattern: "**/*.md", base: DOCS_DIR }).load(ctx);
+    void base; // the glob loader populates ctx.store directly
+    for (const [id, entry] of ctx.store.entries()) {
       let title: string | undefined;
       let description: string | undefined;
       try {
@@ -64,16 +50,16 @@ const loader = {
       } catch {
         // No .meta.json sidecar — fall back to the document's H1, then the
         // filename.
-        title = headingOf(body) ?? prettifyFilename(path.basename(relPath, ".md"));
+        title =
+          entry.data.title ??
+          headingOf(entry.body) ??
+          prettifyFilename(path.basename(id));
       }
-
-      const data = await ctx.parseData({ id, data: { title, description } });
+      // A modified digest: re-setting with the same digest is a no-op.
       ctx.store.set({
-        id,
-        body,
-        data,
-        digest: ctx.generateDigest(body),
-        filePath: path.join(DOCS_DIR, relPath),
+        ...entry,
+        data: { ...entry.data, title, description },
+        digest: ctx.generateDigest(entry.body + `|${title}|${description}`),
       });
     }
   },
