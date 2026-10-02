@@ -1,8 +1,8 @@
 {
-  "title": "System Architecture Overview",
-  "description": "Provides a high-level overview of the NGI system architecture for new team members.",
-  "category": "strict",
-  "documentId": "1001",
+  "title": "Team Management",
+  "description": "Adding people, bulk-importing from GitHub, and deactivating team members",
+  "category": "reference",
+  "documentId": "04-team-management",
   "status": "active",
   "version": "1",
   "lastUpdated": "2026-06-25",

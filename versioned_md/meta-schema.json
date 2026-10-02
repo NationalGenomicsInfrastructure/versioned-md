@@ -20,7 +20,11 @@
     },
     "documentId": {
       "type": "string",
-      "description": "4-digit document ID for strict/draft documents"
+      "description": "4-digit document ID for strict/draft documents; descriptive ID for reference documents"
+    },
+    "template": {
+      "type": "boolean",
+      "description": "True if this document and its metadata were included by versioned-md template generation"
     },
     "responsible": {
       "type": "string",

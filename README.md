@@ -292,6 +292,8 @@ All document metadata is stored in a companion `.meta.json` file alongside each 
 
 The `responsible` field tracks the person owning the document. It is user-mutable and independent of git committer metadata.
 
+Documents that ship with the template carry a `template: true` flag in their `.meta.json` so their provenance (included by template generation) stays visible after syncs. The flag is not CI-managed.
+
 ### Schema Rules Enforced by CI
 
 - `category` must match the document's top-level directory under `docs/` (`strict`, `draft`, `reference`, or `retired`); subdirectories are allowed at any depth (e.g. `docs/reference/versioned-md/`)

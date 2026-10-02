@@ -24,6 +24,7 @@ Each document has a companion `.meta.json` file. All metadata is stored here —
 | `reviewer` | array | No | Yes | List of GitHub handles who approved the document |
 | `commitHash` | string | No | Yes | Short Git SHA of the merge commit that performed the update |
 | `prNumber` | string | No | Yes | PR number as a string (e.g. `"42"`) for reference; empty for non-PR commits |
+| `template` | boolean | Yes | No | `true` for documents (and their metadata) that were included by `versioned-md` template generation |
 
 ### version_history Array
 

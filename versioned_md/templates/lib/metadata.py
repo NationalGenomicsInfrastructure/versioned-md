@@ -232,8 +232,8 @@ def validate_meta_json(path: str | Path) -> tuple[bool, list[str]]:
 
     # Validate top-level fields
     category = data.get("category")
-    if category and category not in ("strict", "draft", "retired"):
-        errors.append(f"{p}: 'category' must be one of 'strict', 'draft', 'retired'")
+    if category and category not in ("strict", "draft", "retired", "reference"):
+        errors.append(f"{p}: 'category' must be one of 'strict', 'draft', 'retired', 'reference'")
 
     document_id = data.get("documentId")
     if category and category in ("strict", "draft"):

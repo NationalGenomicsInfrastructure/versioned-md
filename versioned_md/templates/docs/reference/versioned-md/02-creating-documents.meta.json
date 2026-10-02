@@ -1,8 +1,8 @@
 {
-  "title": "System Architecture Overview",
-  "description": "Provides a high-level overview of the NGI system architecture for new team members.",
-  "category": "strict",
-  "documentId": "1001",
+  "title": "Creating Documents",
+  "description": "Creating draft, strict, and reference documents",
+  "category": "reference",
+  "documentId": "02-creating-documents",
   "status": "active",
   "version": "1",
   "lastUpdated": "2026-06-25",
