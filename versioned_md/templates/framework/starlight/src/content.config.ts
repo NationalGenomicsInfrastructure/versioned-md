@@ -62,6 +62,12 @@ const loader = {
         digest: ctx.generateDigest(entry.body + `|${title}|${description}`),
       });
     }
+    // docs/README.md is a GitHub-facing overview of the docs directory, not
+    // a site page: it is not in any sidebar group, and keeping it out of the
+    // build stops it surfacing at /readme/ and in link summaries. The file
+    // stays on disk. (The glob loader keys entries by their slug, which is
+    // githubSlug-lowercased — hence "readme", not "README".)
+    ctx.store.delete("readme");
   },
 };
 

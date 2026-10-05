@@ -178,6 +178,9 @@ export function buildLinkGraph(docsDir: string): LinkGraph {
       .replace(/\.md$/, "")
       .split(path.sep)
       .join("/");
+    // docs/README.md is a GitHub-facing overview, not a site page — keep it
+    // out of the link graph (mirrors the exclusion in content.config.ts).
+    if (slug === "README") continue;
     slugs.add(slug);
     files.push({ slug, filePath, title: "", links: [] });
   }
