@@ -4,7 +4,7 @@
 //   ## Links on this page   — links this document makes (to other documents
 //                             or external URLs, in source order)
 //   ---
-//   ## Links to this page   — documents linking here (backlinks, sorted)
+//   ## Links pointing to this page — documents linking here (backlinks, sorted)
 //
 // Sections are omitted when empty, and separated by a thematic break when
 // both are present.
@@ -81,7 +81,7 @@ export default function remarkLinkSummaries(graph: LinkGraph) {
       tree.children.push({ type: "thematicBreak" });
     }
     if (hasIncoming) {
-      tree.children.push(heading(2, "Links to this page"));
+      tree.children.push(heading(2, "Links pointing to this page"));
       tree.children.push(
         list(
           // No "missing" marker here: a backlink entry exists for a page that
