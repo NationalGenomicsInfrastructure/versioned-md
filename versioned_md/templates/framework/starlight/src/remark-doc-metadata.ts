@@ -1,15 +1,17 @@
-// Renders the document's .meta.json sidecar as a muted metadata line under
+// Renders the document's .meta.json sidecar as a muted metadata table under
 // the page header:
 //
-//   Document ID: 1001 · Last updated: 2026-06-25 · Updated by: johannes ·
-//   Reviewed by: sarah, mike
+//   | Document ID  | 1001              |
+//   | Last updated | 2026-06-25        |
+//   | Updated by   | johannes          |
+//   | Reviewed by  | sarah, mike       |
 //
 // The top-level sidecar fields (documentId, lastUpdated, updatedBy,
 // reviewer) are rewritten by CI together on every update, so they describe
 // the document "at that time" — the last update. Documents without a
-// sidecar get no section.
+// sidecar get no table.
 //
-// The line is a raw HTML node styled by src/styles/custom.css (.doc-meta),
+// The table is a raw HTML node styled by src/styles/custom.css (.doc-meta),
 // so it stays out of the table of contents.
 
 import { readFileSync } from "node:fs";
@@ -50,25 +52,29 @@ export default function remarkDocMetadata() {
     } catch {
       return; // no sidecar — nothing to show
     }
-    const parts: string[] = [];
+    const rows: Array<[string, string]> = [];
     if (typeof meta.documentId === "string" && meta.documentId) {
-      parts.push(`Document ID: ${escapeHtml(meta.documentId)}`);
+      rows.push(["Document ID", escapeHtml(meta.documentId)]);
     }
     if (typeof meta.lastUpdated === "string" && meta.lastUpdated) {
-      parts.push(`Last updated: ${escapeHtml(meta.lastUpdated)}`);
+      rows.push(["Last updated", escapeHtml(meta.lastUpdated)]);
     }
     if (typeof meta.updatedBy === "string" && meta.updatedBy) {
-      parts.push(`Updated by: ${escapeHtml(meta.updatedBy)}`);
+      rows.push(["Updated by", escapeHtml(meta.updatedBy)]);
     }
     if (Array.isArray(meta.reviewer) && meta.reviewer.length > 0) {
-      parts.push(
-        `Reviewed by: ${meta.reviewer.map((r) => escapeHtml(String(r))).join(", ")}`,
-      );
+      rows.push([
+        "Reviewed by",
+        meta.reviewer.map((r) => escapeHtml(String(r))).join(", "),
+      ]);
     }
-    if (parts.length === 0) return;
+    if (rows.length === 0) return;
+    const body = rows
+      .map(([label, value]) => `<tr><th scope="row">${label}</th><td>${value}</td></tr>`)
+      .join("");
     const node: Node = {
       type: "html",
-      value: `<div class="doc-meta">${parts.join(" · ")}</div>`,
+      value: `<table class="doc-meta"><tbody>${body}</tbody></table>`,
     };
     // Insert under the header: after the body's H1 when it is still first
     // (remark-no-first-h1.ts runs earlier and removes it when it duplicates

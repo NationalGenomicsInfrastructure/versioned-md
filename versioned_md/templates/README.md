@@ -66,7 +66,7 @@ This will create a PR from the `TEMPLATE` branch into `main` that you can review
 
 This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static site, scaffolded
 by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
-are derived from the `.meta.json` sidecars. Under each document's header, a muted line shows its
+are derived from the `.meta.json` sidecars. Under each document's header, a small muted table shows its
 last update from the sidecar: **Document ID**, **Last updated**, **Updated by**, and **Reviewed by**
 (built by the remark plugin in `src/remark-doc-metadata.ts`, styled in `src/styles/custom.css`).
 The sidebar's **Documents overview** page
