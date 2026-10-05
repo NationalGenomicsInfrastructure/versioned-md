@@ -1,9 +1,16 @@
-// Appends a "Links on this page" section to the end of every document that
-// contains links: all links the document makes, to other documents or to
-// external URLs, in source order.
+// Appends link summary sections to the end of every document that has
+// links to show:
 //
-// Runs on the MDAST before rendering, so the appended heading and list get
-// Starlight's normal document treatment (heading anchors, TOC entry).
+//   ## Links on this page   — links this document makes (to other documents
+//                             or external URLs, in source order)
+//   ---
+//   ## Links to this page   — documents linking here (backlinks, sorted)
+//
+// Sections are omitted when empty, and separated by a thematic break when
+// both are present.
+//
+// Runs on the MDAST before rendering, so the appended headings and lists get
+// Starlight's normal document treatment (heading anchors, TOC entries).
 //
 // The link graph is built once at config-load time (see link-graph.ts) and
 // passed in — the plugin itself does no I/O.
@@ -53,16 +60,37 @@ export default function remarkLinkSummaries(graph: LinkGraph) {
     const slug = slugFromFilePath(file.path);
     if (!slug) return;
     const outgoing = graph.outgoing.get(slug);
-    if (!outgoing || outgoing.length === 0) return;
+    const incoming = graph.incoming.get(slug);
+    const hasOutgoing = outgoing?.length > 0;
+    const hasIncoming = incoming?.length > 0;
+    if (!hasOutgoing && !hasIncoming) return;
 
-    tree.children.push(heading(2, "Links on this page"));
-    tree.children.push(
-      list(
-        outgoing.map((l) =>
-          l.kind === "broken" ? [link(l.text, l.href), text(" · missing")] : [link(l.text, l.href)],
+    if (hasOutgoing) {
+      tree.children.push(heading(2, "Links on this page"));
+      tree.children.push(
+        list(
+          outgoing.map((l) =>
+            l.kind === "broken"
+              ? [link(l.text, l.href), text(" · missing")]
+              : [link(l.text, l.href)],
+          ),
         ),
-      ),
-    );
+      );
+    }
+    if (hasOutgoing && hasIncoming) {
+      tree.children.push({ type: "thematicBreak" });
+    }
+    if (hasIncoming) {
+      tree.children.push(heading(2, "Links to this page"));
+      tree.children.push(
+        list(
+          // No "missing" marker here: a backlink entry exists for a page that
+          // exists; a source's broken link to us is already flagged on that
+          // source's own "Links on this page" section.
+          incoming.map((l) => [link(l.text, l.href)]),
+        ),
+      );
+    }
   };
 }
 
