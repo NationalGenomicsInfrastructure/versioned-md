@@ -66,7 +66,7 @@ This will create a PR from the `TEMPLATE` branch into `main` that you can review
 
 This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static site, scaffolded
 by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
-are derived from the `.meta.json` sidecars. The sidebar's **All documents** page
+are derived from the `.meta.json` sidecars. The sidebar's **Documents overview** page
 (`src/pages/documents.astro`) lists every versioned document with its last update, built from
 the sidecars. Each document that has links ends with summary sections: **Links on this page**
 and, where other documents link to it, **Links pointing to this page** (built by the remark plugins in

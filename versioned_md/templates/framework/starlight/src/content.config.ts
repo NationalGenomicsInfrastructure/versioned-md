@@ -113,7 +113,7 @@ const docs = defineCollection({
 });
 
 // ---------------------------------------------------------------------------
-// docMeta: one entry per .meta.json sidecar, powering the "All documents"
+// docMeta: one entry per .meta.json sidecar, powering the "Documents overview"
 // overview page (src/pages/documents.astro). Pure data — no Markdown
 // rendering involved, so a plain loader is sufficient here.
 // ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ const docMetaLoader = {
         .split(path.sep)
         .join("/");
       // Sidecars outside a category directory are ignored too, so the
-      // "All documents" page never lists a document whose page is not built
+      // "Documents overview" page never lists a document whose page is not built
       // (mirrors the docs collection above).
       if (!inCategoryDir(slug)) continue;
       const stem = path.basename(slug);

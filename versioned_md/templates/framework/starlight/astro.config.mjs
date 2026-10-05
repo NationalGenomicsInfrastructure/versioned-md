@@ -20,10 +20,10 @@ export default defineConfig({
       title: {{ name | tojson }},
       description: {{ description | tojson }},
       // Sidebar groups are auto-generated from the versioned-md categories.
-      // The "All documents" page is a manual entry (see src/pages/documents.astro).
+      // The "Documents overview" page is a manual entry (see src/pages/documents.astro).
       // Free to customise (labels, ordering, grouping).
       sidebar: [
-        { label: "All documents", link: "/documents/" },
+        { label: "Documents overview", link: "/documents/" },
         { label: "Strict", autogenerate: { directory: "docs/strict" } },
         { label: "Drafts", autogenerate: { directory: "docs/drafts" } },
         { label: "Reference", autogenerate: { directory: "docs/reference" } },
