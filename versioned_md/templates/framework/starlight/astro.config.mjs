@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import { buildLinkGraph } from "./src/link-graph";
 import remarkNoFirstH1 from "./src/remark-no-first-h1";
+import remarkDocMetadata from "./src/remark-doc-metadata";
 import remarkLinkSummaries from "./src/remark-link-summaries";
 
 // Link graph over all documents (outgoing + incoming), built once at
@@ -28,15 +29,19 @@ export default defineConfig({
         { label: "Drafts", autogenerate: { directory: "docs/drafts" } },
         { label: "Reference", autogenerate: { directory: "docs/reference" } },
       ],
+      // Custom styles (the muted .doc-meta line, see src/remark-doc-metadata.ts).
+      customCss: ["/src/styles/custom.css"],
     }),
   ],
   // Documents already start with an H1 matching the page title, which
   // Starlight renders in the page header; drop the duplicate from the body.
+  // remark-doc-metadata renders the .meta.json sidecar as a muted line
+  // under the header (Document ID, last update, reviewer).
   // remark-link-summaries appends a "Links on this page" section at the end
   // of each document (fed by the link graph computed above).
   // Note: this must be Astro's top-level markdown config — Starlight's
   // `markdown` option only supports `headingLinks`.
   markdown: {
-    remarkPlugins: [remarkNoFirstH1, [remarkLinkSummaries, linkGraph]],
+    remarkPlugins: [remarkNoFirstH1, remarkDocMetadata, [remarkLinkSummaries, linkGraph]],
   },
 });

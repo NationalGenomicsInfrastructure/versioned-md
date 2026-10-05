@@ -1,0 +1,8 @@
+/* versioned-md: muted metadata line under the page header.
+   Rendered by src/remark-doc-metadata.ts from the .meta.json sidecar.
+   Included via the `customCss` option in astro.config.mjs. */
+.doc-meta {
+  margin-top: 0;
+  color: var(--sl-color-text-weakest);
+  font-size: var(--sl-text-sm);
+}
