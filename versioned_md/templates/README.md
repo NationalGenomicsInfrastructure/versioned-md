@@ -68,7 +68,9 @@ This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static 
 by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
 are derived from the `.meta.json` sidecars. The sidebar's **All documents** page
 (`src/pages/documents.astro`) lists every versioned document with its last update, built from
-the sidecars.
+the sidecars. Each document that has links ends with summary sections: **Links on this page**
+and, where other documents link to it, **Links to this page** (built by the remark plugins in
+`src/remark-link-summaries.ts` from the link graph in `src/link-graph.ts`).
 
 ```bash
 npm install
