@@ -11,6 +11,21 @@
 import path from "node:path";
 import { readdirSync, readFileSync } from "node:fs";
 
+/**
+ * Top-level docs/ directories that hold publishable documents. A file
+ * directly under docs/ (no category directory) — e.g. docs/README.md — is a
+ * GitHub-facing or stray file: not a versioned document, not a site page.
+ * These are the directory names, and must stay in sync with the sidebar
+ * autogenerate groups in astro.config.mjs.
+ */
+export const CATEGORY_DIRS: readonly string[] = ["strict", "drafts", "reference"];
+
+/** True if *slug* (a path relative to docs/) is inside a category directory. */
+export function inCategoryDir(slug: string): boolean {
+  const dir = slug.split("/")[0].toLowerCase();
+  return CATEGORY_DIRS.includes(dir);
+}
+
 export type LinkKind = "internal" | "external" | "broken";
 
 export interface DocLink {
@@ -178,9 +193,10 @@ export function buildLinkGraph(docsDir: string): LinkGraph {
       .replace(/\.md$/, "")
       .split(path.sep)
       .join("/");
-    // docs/README.md is a GitHub-facing overview, not a site page — keep it
-    // out of the link graph (mirrors the exclusion in content.config.ts).
-    if (slug === "README") continue;
+    // Only documents inside a category directory are site documents; files
+    // directly under docs/ (e.g. README.md) stay on disk but are ignored by
+    // the site and the link graph (mirrors the exclusion in content.config.ts).
+    if (!inCategoryDir(slug)) continue;
     slugs.add(slug);
     files.push({ slug, filePath, title: "", links: [] });
   }

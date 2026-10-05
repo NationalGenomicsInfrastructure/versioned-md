@@ -3,6 +3,7 @@ import type { LoaderContext } from "astro:content";
 import { glob } from "astro/loaders";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { inCategoryDir } from "./link-graph";
 
 // Serve the versioned-md docs/ directory directly.
 //
@@ -62,12 +63,14 @@ const loader = {
         digest: ctx.generateDigest(entry.body + `|${title}|${description}`),
       });
     }
-    // docs/README.md is a GitHub-facing overview of the docs directory, not
-    // a site page: it is not in any sidebar group, and keeping it out of the
-    // build stops it surfacing at /readme/ and in link summaries. The file
-    // stays on disk. (The glob loader keys entries by their slug, which is
+    // Only documents inside a category directory (strict/drafts/reference)
+    // are site pages. Files directly under docs/ — e.g. docs/README.md, a
+    // GitHub-facing overview — are ignored by the site but stay on disk.
+    // (The glob loader keys entries by their slug, which is
     // githubSlug-lowercased — hence "readme", not "README".)
-    ctx.store.delete("readme");
+    for (const [id] of ctx.store.entries()) {
+      if (!inCategoryDir(id)) ctx.store.delete(id);
+    }
   },
 };
 
@@ -147,6 +150,10 @@ const docMetaLoader = {
         .replace(/\.meta\.json$/, "")
         .split(path.sep)
         .join("/");
+      // Sidecars outside a category directory are ignored too, so the
+      // "All documents" page never lists a document whose page is not built
+      // (mirrors the docs collection above).
+      if (!inCategoryDir(slug)) continue;
       const stem = path.basename(slug);
       let meta: Record<string, unknown>;
       try {
