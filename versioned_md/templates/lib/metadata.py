@@ -232,8 +232,8 @@ def validate_meta_json(path: str | Path) -> tuple[bool, list[str]]:
 
     # Validate top-level fields
     category = data.get("category")
-    if category and category not in ("strict", "draft", "retired"):
-        errors.append(f"{p}: 'category' must be one of 'strict', 'draft', 'retired'")
+    if category and category not in ("strict", "draft", "retired", "reference"):
+        errors.append(f"{p}: 'category' must be one of 'strict', 'draft', 'retired', 'reference'")
 
     document_id = data.get("documentId")
     if category and category in ("strict", "draft"):
@@ -340,11 +340,32 @@ def validate_meta_pr_history(base_history: list[dict], pr_history: list[dict]) -
     return errors
 
 
+def category_dir(path: str | Path) -> str | None:
+    """Return the top-level directory under ``docs/`` for a document path.
+
+    ``docs/reference/versioned-md/01-x.md`` → ``"reference"``. Subdirectories are
+    allowed at any depth; only the first component determines the category.
+    Returns ``None`` if the path is not inside a category directory.
+    """
+    parts = Path(path).parts
+    if "docs" in parts:
+        i = parts.index("docs")
+        if len(parts) > i + 2:
+            return parts[i + 1]
+    return None
+
+
 def validate_category_in_dir(path: str | Path, category: str) -> bool:
-    """Return ``True`` if *category* matches the expected parent directory."""
-    p = Path(path)
-    parent_dir = p.parent.name
-    return parent_dir == category
+    """Return ``True`` if *category* matches the top-level ``docs/`` directory.
+
+    Subdirectories are allowed at any depth (e.g. a ``reference`` document in
+    ``docs/reference/sop/``).
+    """
+    cat_dir = category_dir(path)
+    if cat_dir is None:
+        return True
+    expected = "draft" if cat_dir == "drafts" else cat_dir
+    return category in (expected, "retired")
 
 
 def find_changed_md_refs(base_ref: str, head_ref: str) -> list[str]:

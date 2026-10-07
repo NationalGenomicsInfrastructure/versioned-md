@@ -1,0 +1,85 @@
+---
+// Overview page: one row per document, built from the .meta.json sidecars.
+// The docMeta collection (src/content.config.ts) exposes the sidecar data;
+// entry ids map directly to document URLs ("/<id>/").
+//
+// Note the <StarlightPage> wrapper: it is Starlight 0.34's API for custom
+// pages and renders the standard site chrome (header, sidebar, footer).
+import { getCollection } from "astro:content";
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+
+const CATEGORY_ORDER: Record<string, number> = {
+  strict: 0,
+  draft: 1,
+  reference: 2,
+};
+
+const entries = await getCollection("docMeta");
+entries.sort((a, b) => {
+  const byCategory =
+    (CATEGORY_ORDER[a.data.category] ?? 99) - (CATEGORY_ORDER[b.data.category] ?? 99);
+  return byCategory !== 0 ? byCategory : a.id.localeCompare(b.id);
+});
+
+// Defined here (instead of inline in the tag below) because a literal "{{"
+// would be parsed as a Jinja expression when this file is rendered by
+// `versioned-md create`.
+const pageFrontmatter = {
+  title: "Documents overview",
+  description: "Every versioned document in this repository, with its last update.",
+};
+---
+
+<StarlightPage frontmatter={pageFrontmatter}>
+  <p class="doc-count">
+    {entries.length} document{entries.length === 1 ? "" : "s"}
+  </p>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th scope="col">Document</th>
+        <th scope="col">Last updated</th>
+        <th scope="col">Updated by</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        entries.map((entry) => (
+          <tr>
+            <td>
+              <a href={`/${entry.id}/`}>{entry.data.title}</a>
+            </td>
+            <td>{entry.data.lastUpdated || "—"}</td>
+            <td>{entry.data.updatedBy || "—"}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <style>
+    .doc-count {
+      color: var(--sl-color-text-weakest);
+      font-size: var(--sl-text-sm);
+    }
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--sl-text-sm);
+    }
+    .doc-table th,
+    .doc-table td {
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--sl-color-gray-5);
+    }
+    .doc-table th {
+      font-weight: 600;
+    }
+    .doc-table a {
+      color: var(--sl-color-white);
+    }
+    :global(.sl-theme-dark) .doc-table a {
+      color: var(--sl-color-accent);
+    }
+  </style>
+</StarlightPage>

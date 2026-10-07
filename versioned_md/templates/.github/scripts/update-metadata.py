@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from lib.metadata import (
     bump_version,
+    category_dir,
     generate_document_id,
     read_commit_author,
     get_commit_date,
@@ -59,7 +60,7 @@ def changed_md_files(base_ref: str, head_ref: str) -> list[str]:
 def validate_strict_filename(md_path: Path) -> bool:
     """Return True if the filename matches its documentId for strict docs."""
     path = Path(md_path)
-    if path.parent.name != "strict":
+    if category_dir(path) != "strict":
         return True
     meta_path = path.with_suffix(".meta.json")
     if not meta_path.exists():
@@ -82,7 +83,7 @@ def validate_strict_filenames(all_md_files: list[str]) -> bool:
     ok = True
     for f in all_md_files:
         path = Path(f)
-        if path.parent.name != "strict":
+        if category_dir(path) != "strict":
             continue
         if not validate_strict_filename(path):
             ok = False
@@ -195,7 +196,7 @@ def validate_all_document_ids(all_md_files: list[str]) -> bool:
     ok = True
     for f in all_md_files:
         path = Path(f)
-        if path.parent.name not in ("strict", "draft"):
+        if category_dir(path) not in ("strict", "drafts"):
             continue
         meta_path = path.with_suffix(".meta.json")
         if not meta_path.exists():

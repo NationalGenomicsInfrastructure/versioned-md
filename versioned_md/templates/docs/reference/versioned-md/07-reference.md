@@ -24,6 +24,7 @@ Each document has a companion `.meta.json` file. All metadata is stored here —
 | `reviewer` | array | No | Yes | List of GitHub handles who approved the document |
 | `commitHash` | string | No | Yes | Short Git SHA of the merge commit that performed the update |
 | `prNumber` | string | No | Yes | PR number as a string (e.g. `"42"`) for reference; empty for non-PR commits |
+| `template` | boolean | Yes | No | `true` for documents (and their metadata) that were included by `versioned-md` template generation |
 
 ### version_history Array
 
@@ -173,7 +174,7 @@ Quick diagnostic reference for the most common errors you will encounter.
 | `"PR author 'x' is not listed in people.json"` | The person opening the PR is not in `people.json` | Run `versioned-md people import` or `people add --name ... --handle ...` and push to the PR branch |
 | `"Approved reviewer 'x' is not listed in people.json"` | Someone who approved the review is not in people.json | Add the missing reviewer first, then re-trigger CI (push a new commit) |
 | `"Protected field 'category' changed..."` | Someone edited a protected field in `.meta.json` directly | Revert the `.meta.json` change and let CI handle it on merge |
-| `"Category mismatch: ... category='strict' but parent directory is 'drafts'"` | File is in `docs/drafts/` but `.meta.json` says `category: "strict"` | Either move the file to `docs/strict/` or fix the `.meta.json` category field |
+| `"Category mismatch: ... but is in 'drafts/' (expected 'draft' or 'retired)'"` | File is in `docs/drafts/` but `.meta.json` says `category: "strict"` | Either move the file to `docs/strict/` or fix the `.meta.json` category field |
 | `"strict filename must match documentId exactly..."` | A strict file is named `1001-something.md` instead of `1001.md` | Rename the file to just the documentId (e.g., `1001.md`) |
 | `"Duplicate documentId '1001'"` | Two documents have the same documentId | Rename the duplicate or check which documentId should be different |
 | `"New version entries added to version_version_history..."` | PR tries to add version_history entries to an existing document | Only the first PR on a new document can add version_history. Subsequent edits should only change the Markdown body |

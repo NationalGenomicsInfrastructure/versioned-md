@@ -8,6 +8,13 @@ wheels/
 
 # Virtual environments
 .venv
+{% if framework == "starlight" %}
+
+# Starlight / Node
+node_modules/
+.astro/
+npm-debug.log*
+{% endif %}
 
 # OS-generated files
 .DS_Store

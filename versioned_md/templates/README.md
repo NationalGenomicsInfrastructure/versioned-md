@@ -61,6 +61,36 @@ versioned-md sync
 
 This will create a PR from the `TEMPLATE` branch into `main` that you can review and merge.
 
+{% if framework == "starlight" %}
+## Static Site (Starlight)
+
+This repo includes a [Starlight](https://starlight.astro.build/) (Astro) static site, scaffolded
+by versioned-md. It serves the documents in `docs/` directly — no frontmatter required, titles
+are derived from the `.meta.json` sidecars. Under each document's header, a small muted table shows its
+last update from the sidecar: **Document ID**, **Last updated**, **Updated by**, and **Reviewed by**
+(built by the remark plugin in `src/remark-doc-metadata.ts`, styled in `src/styles/custom.css`).
+The sidebar's **Documents overview** page
+(`src/pages/documents.astro`) lists every versioned document with its last update, built from
+the sidecars. Each document that has links ends with summary sections: **Links on this page**
+and, where other documents link to it, **Links pointing to this page** (built by the remark plugins in
+`src/remark-link-summaries.ts` from the link graph in `src/link-graph.ts`).
+
+```bash
+npm install
+npm run dev      # local preview at http://localhost:4321
+npm run build    # static output in dist/
+npm run preview  # preview the production build
+```
+
+The Starlight files (`astro.config.mjs`, `package.json`, `src/`) are part of the versioned-md
+template: `versioned-md sync` may update them, and you are free to customise them in `main`
+(theme, sidebar, deployment, …) — customisations stay on `main` and only the `TEMPLATE` branch
+is refreshed by sync.
+
+Note: some document metadata (version, history) is not rendered by the default
+scaffold. Extend the theme to surface it as needed.
+
+{% endif %}
 ## Quick Start
 
 1. Create documentation files in `docs/strict/`, `docs/drafts/`, or `docs/reference/`

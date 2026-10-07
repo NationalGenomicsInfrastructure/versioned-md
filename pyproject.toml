@@ -39,7 +39,6 @@ select = ["E", "F", "W", "I", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-".github/scripts/*.py" = ["ALL"]
 
 [tool.setuptools.packages.find]
 where = ["."]

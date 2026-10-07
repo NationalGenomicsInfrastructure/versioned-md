@@ -191,6 +191,9 @@ def create(
     description: str = typer.Option(None, "--description", "-d", help="Short description of the documentation repo."),
     author: str = typer.Option(None, "--author", "-a", help="Author or organisation name, used in the LICENSE file."),
     org: str = typer.Option(None, "--org", "-o", help="Organisation name (defaults to --author if not specified)."),
+    framework: str = typer.Option(
+        None, "--framework", help="Static documentation framework to scaffold (starlight). Default: none."
+    ),
     outdir: str = typer.Option(
         None, "--outdir", "-O", help="Directory to create the repo in. Defaults to current dir."
     ),
@@ -207,7 +210,7 @@ def create(
     Run without arguments for an interactive prompt, or supply flags for non-interactive use.
     """
     # If no args provided and not in TTY, error out
-    if not any([name, description, author, org, config]):
+    if not any([name, description, author, org, config, framework]):
         if not sys.stdout.isatty():
             typer.echo(
                 "Error: No arguments provided and not running interactively. Provide at least --name.",
@@ -224,9 +227,10 @@ def create(
         config_file=config,
         force=force,
         no_git=no_git,
+        framework=framework or "",
     )
     # Pass is_interactive based on whether any args were given
-    has_args = any([name, description, author, org, config])
+    has_args = any([name, description, author, org, config, framework])
     result = create_app.run(is_interactive=not has_args)
     sys.exit(result or 0)
 

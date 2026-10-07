@@ -1,8 +1,8 @@
 {
-  "title": "System Architecture Overview",
-  "description": "Provides a high-level overview of the NGI system architecture for new team members.",
-  "category": "strict",
-  "documentId": "1001",
+  "title": "Getting Started",
+  "description": "Creating a documentation repository from scratch and bootstrapping it for first use",
+  "category": "reference",
+  "documentId": "01-using-versioned-md",
   "status": "active",
   "version": "1",
   "lastUpdated": "2026-06-25",
